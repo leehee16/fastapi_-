@@ -1,0 +1,142 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <div class="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
+        <h2 class="text-2xl font-semibold mb-6">월별 매출 요약</h2>
+        {% if sales_data %}
+        <div class="overflow-x-auto">
+            <table class="min-w-full">
+                <thead>
+                    <tr>
+                        <th class="px-4 py-2">월</th>
+                        <th class="px-4 py-2">총 매출</th>
+                        <th class="px-4 py-2">판매 건수</th>
+                        <th class="px-4 py-2">평균 매출</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in sales_data %}
+                    <tr>
+                        <td class="border px-4 py-2">{{ item.month }}</td>
+                        <td class="border px-4 py-2">{{ "{:,.0f}".format(item.total_amount) }}원</td>
+                        <td class="border px-4 py-2">{{ item.sale_count }}건</td>
+                        <td class="border px-4 py-2">{{ "{:,.0f}".format(item.average_amount) }}원</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <p>데이터가 없습니다.</p>
+        {% endif %}
+    </div>
+    <div class="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
+        <h2 class="text-2xl font-semibold mb-6">월별 매출 그래프</h2>
+        <div class="mb-8">
+            <canvas id="salesChart"></canvas>
+        </div>
+        <h2 class="text-xl font-semibold mb-4">색깔별 판매 수량</h2>
+        <div class="w-1/2 mx-auto">
+            <canvas id="colorSalesChart"></canvas>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    // 월별 매출 차트
+    const salesData = {{ sales_data|tojson }};
+    if (salesData.length > 0) {
+        const salesCtx = document.getElementById('salesChart').getContext('2d');
+        new Chart(salesCtx, {
+            type: 'bar',
+            data: {
+                labels: salesData.map(item => item.month),
+                datasets: [{
+                    label: '총 매출 (원)',
+                    data: salesData.map(item => item.total_amount),
+                    backgroundColor: 'rgba(59, 130, 246, 0.5)',
+                    borderColor: 'rgb(59, 130, 246)',
+                    borderWidth: 1
+                }, {
+                    label: '평균 매출 (원)',
+                    data: salesData.map(item => item.average_amount),
+                    backgroundColor: 'rgba(16, 185, 129, 0.5)',
+                    borderColor: 'rgb(16, 185, 129)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: function(value, index, values) {
+                                return new Intl.NumberFormat('ko-KR', { style: 'currency', currency: 'KRW' }).format(value);
+                            }
+                        }
+                    }
+                },
+                plugins: {
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                let label = context.dataset.label || '';
+                                if (label) {
+                                    label += ': ';
+                                }
+                                if (context.parsed.y !== null) {
+                                    label += new Intl.NumberFormat('ko-KR', { style: 'currency', currency: 'KRW' }).format(context.parsed.y);
+                                }
+                                return label;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    } else {
+        document.getElementById('salesChart').innerHTML = '데이터가 없습니다.';
+    }
+
+    // 색깔별 판매 수량 차트
+    const colorSalesData = {{ color_sales|tojson }};
+    if (colorSalesData.length > 0) {
+        const colorSalesCtx = document.getElementById('colorSalesChart').getContext('2d');
+        new Chart(colorSalesCtx, {
+            type: 'pie',
+            data: {
+                labels: colorSalesData.map(item => item.color),
+                datasets: [{
+                    data: colorSalesData.map(item => item.sales),
+                    backgroundColor: [
+                        'rgba(255, 99, 132, 0.8)',
+                        'rgba(54, 162, 235, 0.8)',
+                        'rgba(75, 192, 192, 0.8)',
+                        'rgba(255, 206, 86, 0.8)',
+                        'rgba(153, 102, 255, 0.8)',
+                    ],
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                plugins: {
+                    legend: {
+                        position: 'right',
+                    },
+                    title: {
+                        display: false,
+                    }
+                }
+            }
+        });
+    } else {
+        document.getElementById('colorSalesChart').innerHTML = '데이터가 없습니다.';
+    }
+</script>
+{% endblock %}

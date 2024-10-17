@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Dashboard{% endblock %}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#2563eb',
+                        secondary: '#64748b',
+                    },
+                },
+            },
+        }
+    </script>
+    <style>
+        body { @apply bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100; }
+    </style>
+</head>
+<body class="flex flex-col min-h-screen">
+    {% include "components/navbar.html" %}
+    <div class="flex flex-1">
+        {% include "components/sidebar.html" %}
+        <main class="flex-1 p-6">
+            {% block content %}{% endblock %}
+        </main>
+    </div>
+    {% include "components/footer.html" %}
+</body>
+</html>
