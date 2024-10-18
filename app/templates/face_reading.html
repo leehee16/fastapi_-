@@ -7,41 +7,40 @@
 
 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
     <div class="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
-        <h2 class="text-2xl font-semibold mb-6">사진 업로드</h2>
+        <h2 class="text-2xl font-semibold mb-6">사진 업로드 / 카메라</h2>
         <div class="flex flex-col space-y-4">
             <input type="file" accept="image/*" id="fileInput" class="hidden" />
-            <button id="uploadBtn" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
-                사진 업로드
-            </button>
-            <button id="cameraBtn" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded">
-                (⭐️AI 실시간 분석⭐️) 카메라 열기
-            </button>
-            <video id="videoElement" class="w-full h-auto hidden"></video>
-            <canvas id="canvasElement" class="w-full h-auto hidden"></canvas>
-            <img id="capturedImage" class="w-full h-auto hidden" alt="캡처된 이미지" />
-            <button id="captureBtn" class="bg-yellow-500 hover:bg-yellow-700 text-white font-bold py-2 px-4 rounded hidden">
+            <div class="flex space-x-4">
+                <button id="uploadBtn" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded w-1/2">
+                    사진 업로드
+                </button>
+                <button id="cameraBtn" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded w-1/2">
+                    (⭐️AI 실시간 분석⭐️)<br>카메라 열기
+                </button>
+            </div>
+            <div id="imageContainer" class="mt-4 w-full h-auto bg-gray-200 flex items-center justify-center">
+                <video id="videoFeed" class="w-full h-auto object-contain hidden" autoplay playsinline muted></video>
+                <img id="capturedImage" class="w-full h-auto object-contain hidden" alt="캡처된 이미지" />
+                <p id="placeholderText" class="text-gray-500">여기에 카메라 화면 또는 업로드된 이미지가 표시됩니다.</p>
+            </div>
+            <button id="captureBtn" class="mt-2 bg-yellow-500 hover:bg-yellow-700 text-white font-bold py-2 px-4 rounded hidden">
                 사진 찍기
-            </button>
-            <button id="analyze-btn" class="bg-purple-500 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded">
-                분석 시작
             </button>
         </div>
     </div>
     <div class="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
+        <div class="flex justify-end mb-4">
+            <button id="analyze-btn" class="bg-purple-500 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded">
+                분석 시작
+            </button>
+        </div>
         <h2 class="text-2xl font-semibold mb-6">외모 레포트</h2>
         <div id="report" class="text-gray-700 dark:text-gray-300">
             여기에 외모 분석 결과가 표시됩니다.
         </div>
+        <img id="analyzedImage" class="w-full h-auto mt-4 hidden" alt="분석된 이미지" />
     </div>
 </div>
 
-<script>
-    document.getElementById('analyze-btn').addEventListener('click', function() {
-        document.getElementById('report').innerHTML = '외모 분석 중...';
-        // 실제 구현에서는 여기에 서버로 이미지를 전송하고 결과를 받아오는 로직이 들어갑니다.
-        setTimeout(() => {
-            document.getElementById('report').innerHTML = '못생겼음.🥲';
-        }, 2000);
-    });
-</script>
+<script src="{{ url_for('static', path='js/face_reading.js') }}"></script>
 {% endblock %}
