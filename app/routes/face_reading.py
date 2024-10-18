@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Request, File, UploadFile
 from fastapi.templating import Jinja2Templates
-from fastapi.responses import JSONResponse, StreamingResponse
+from fastapi.responses import JSONResponse
 import cv2
 import numpy as np
 import base64
@@ -9,23 +9,30 @@ from ..utils.camera import camera
 router = APIRouter()
 templates = Jinja2Templates(directory="app/templates")
 
-def generate_frames():
-    while True:
-        frame = camera.get_frame()
-        if frame is None:
-            break
-        _, buffer = cv2.imencode('.jpg', frame)
-        frame_bytes = buffer.tobytes()
-        yield (b'--frame\r\n'
-               b'Content-Type: image/jpeg\r\n\r\n' + frame_bytes + b'\r\n')
-
 @router.get("/face-reading")
 async def face_reading(request: Request):
     return templates.TemplateResponse("face_reading.html", {"request": request})
 
-@router.get("/video-feed")
-async def video_feed():
-    return StreamingResponse(generate_frames(), media_type="multipart/x-mixed-replace; boundary=frame")
+@router.post("/start-camera")
+async def start_camera():
+    if camera.start():
+        return JSONResponse(content={"message": "Camera started"})
+    return JSONResponse(content={"error": "Failed to start camera"})
+
+@router.post("/stop-camera")
+async def stop_camera():
+    camera.stop()
+    return JSONResponse(content={"message": "Camera stopped"})
+
+@router.post("/recognize-face")
+async def recognize_face(data: dict):
+    image_data = data['image'].split(',')[1]
+    image_bytes = base64.b64decode(image_data)
+    nparr = np.frombuffer(image_bytes, np.uint8)
+    img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+
+    faces_detected = camera.detect_faces(img)
+    return JSONResponse(content={"faces_detected": faces_detected})
 
 @router.post("/analyze-face")
 async def analyze_face(file: UploadFile = File(...)):
@@ -39,14 +46,3 @@ async def analyze_face(file: UploadFile = File(...)):
     img_base64 = base64.b64encode(buffer).decode('utf-8')
 
     return JSONResponse(content={"analysis": analysis, "image": img_base64})
-
-@router.post("/start-camera")
-async def start_camera():
-    if camera.start():
-        return JSONResponse(content={"message": "Camera started"})
-    return JSONResponse(content={"error": "Failed to start camera"})
-
-@router.post("/stop-camera")
-async def stop_camera():
-    camera.stop()
-    return JSONResponse(content={"message": "Camera stopped"})

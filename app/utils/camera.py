@@ -55,4 +55,8 @@ class Camera:
 
         return image, analysis
 
+    def detect_faces(self, image):
+        face_locations = face_recognition.face_locations(image)
+        return len(face_locations) > 0
+
 camera = Camera()
