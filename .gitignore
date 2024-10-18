@@ -1,0 +1,4 @@
+*.jpg
+*.jpeg
+*.png
+app/static/known_faces/
