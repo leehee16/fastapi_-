@@ -31,8 +31,12 @@ async def recognize_face(data: dict):
     nparr = np.frombuffer(image_bytes, np.uint8)
     img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
 
-    faces_detected = camera.detect_faces(img)
-    return JSONResponse(content={"faces_detected": faces_detected})
+    face_locations, face_names = camera.detect_faces(img)
+    return JSONResponse(content={
+        "faces_detected": len(face_locations) > 0,
+        "face_locations": face_locations,
+        "face_names": face_names
+    })
 
 @router.post("/analyze-face")
 async def analyze_face(file: UploadFile = File(...)):

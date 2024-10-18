@@ -18,9 +18,10 @@
                     사진 업로드
                 </button>
             </div>
-            <div id="imageContainer" class="mt-4 w-full h-auto bg-gray-200 flex items-center justify-center">
-                <video id="videoFeed" class="w-full h-auto object-contain hidden" autoplay playsinline muted></video>
-                <img id="capturedImage" class="w-full h-auto object-contain hidden" alt="캡처된 이미지" />
+            <div id="imageContainer" class="mt-4 w-full h-64 bg-gray-200 flex items-center justify-center relative">
+                <video id="videoFeed" class="w-full h-full object-cover hidden" autoplay playsinline muted></video>
+                <canvas id="overlayCanvas" class="absolute top-0 left-0 w-full h-full object-cover hidden"></canvas>
+                <img id="capturedImage" class="w-full h-full object-cover hidden" alt="캡처된 이미지" />
                 <p id="placeholderText" class="text-gray-500">여기에 카메라 화면 또는 업로드된 이미지가 표시됩니다.</p>
             </div>
             <div id="faceDetectionStatus" class="text-center font-bold mt-2"></div>

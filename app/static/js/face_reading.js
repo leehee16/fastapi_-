@@ -3,6 +3,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const uploadBtn = document.getElementById('uploadBtn');
     const cameraBtn = document.getElementById('cameraBtn');
     const videoFeed = document.getElementById('videoFeed');
+    const overlayCanvas = document.getElementById('overlayCanvas');
     const capturedImage = document.getElementById('capturedImage');
     const captureBtn = document.getElementById('captureBtn');
     const analyzeBtn = document.getElementById('analyze-btn');
@@ -27,6 +28,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 capturedImage.src = e.target.result;
                 capturedImage.classList.remove('hidden');
                 videoFeed.classList.add('hidden');
+                overlayCanvas.classList.add('hidden');
                 placeholderText.classList.add('hidden');
             };
             reader.readAsDataURL(file);
@@ -45,6 +47,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 stream = await navigator.mediaDevices.getUserMedia({ video: true });
                 videoFeed.srcObject = stream;
                 videoFeed.classList.remove('hidden');
+                overlayCanvas.classList.remove('hidden');
                 captureBtn.classList.remove('hidden');
                 capturedImage.classList.add('hidden');
                 placeholderText.classList.add('hidden');
@@ -68,6 +71,7 @@ document.addEventListener('DOMContentLoaded', function() {
             stream.getTracks().forEach(track => track.stop());
         }
         videoFeed.classList.add('hidden');
+        overlayCanvas.classList.add('hidden');
         captureBtn.classList.add('hidden');
         placeholderText.classList.remove('hidden');
         isCameraOn = false;
@@ -97,16 +101,62 @@ document.addEventListener('DOMContentLoaded', function() {
                 });
 
                 const result = await response.json();
-                faceDetectionStatus.textContent = result.faces_detected ? '얼굴이 감지되었습니다🐵' : '얼굴이 감지되지 않았습니다.🙈';
+                let statusText = result.faces_detected ? '얼굴이 감지되었습니다🐵' : '얼굴이 감지되지 않았습니다.🙈';
+                
+                if (result.faces_detected && result.face_names.includes("이호진")) {
+                    statusText += " (이호진 입니다)";
+                }
+                
+                faceDetectionStatus.textContent = statusText;
+                
+                // 오버레이 캔버스 크기 조정
+                overlayCanvas.width = videoFeed.videoWidth;
+                overlayCanvas.height = videoFeed.videoHeight;
+                
+                drawFaceDetection(result.face_locations, result.face_names);
             } catch (error) {
                 console.error('Error:', error);
             }
-        }, 1000);
+        }, 100);  // 10fps로 설정
+    }
+
+    function drawFaceDetection(faceLocations, faceNames) {
+        const ctx = overlayCanvas.getContext('2d');
+        ctx.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height);
+        ctx.strokeStyle = '#00FF00';
+        ctx.lineWidth = 2;
+        ctx.font = '16px Arial';
+        ctx.fillStyle = '#00FF00';
+
+        const scaleX = overlayCanvas.width / videoFeed.videoWidth;
+        const scaleY = overlayCanvas.height / videoFeed.videoHeight;
+
+        faceLocations.forEach((location, index) => {
+            const [top, right, bottom, left] = location;
+            ctx.beginPath();
+            ctx.rect(
+                left * scaleX,
+                top * scaleY,
+                (right - left) * scaleX,
+                (bottom - top) * scaleY
+            );
+            ctx.stroke();
+
+            if (faceNames[index]) {
+                ctx.fillText(
+                    faceNames[index],
+                    left * scaleX,
+                    (top * scaleY) - 5
+                );
+            }
+        });
     }
 
     function stopFaceRecognition() {
         clearInterval(recognitionInterval);
         faceDetectionStatus.textContent = '';
+        const ctx = overlayCanvas.getContext('2d');
+        ctx.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height);
     }
 
     captureBtn.addEventListener('click', () => {
@@ -117,6 +167,7 @@ document.addEventListener('DOMContentLoaded', function() {
         capturedImage.src = canvas.toDataURL('image/jpeg');
         capturedImage.classList.remove('hidden');
         videoFeed.classList.add('hidden');
+        overlayCanvas.classList.add('hidden');
         stopCamera();
     });
 

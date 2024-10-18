@@ -1,5 +1,6 @@
 import face_recognition
 import os
+import numpy as np
 from pathlib import Path
 
 class FaceRecognizer:
@@ -9,13 +10,14 @@ class FaceRecognizer:
         self.load_known_faces()
 
     def load_known_faces(self):
-        example_faces_dir = Path("app/static/example_faces")
-        for image_file in example_faces_dir.glob("*.jpg"):
-            name = image_file.stem
-            image = face_recognition.load_image_file(str(image_file))
-            encoding = face_recognition.face_encodings(image)[0]
-            self.known_face_encodings.append(encoding)
-            self.known_face_names.append(name)
+        known_faces_dir = "app/static/known_faces"
+        for filename in os.listdir(known_faces_dir):
+            if filename.endswith(".jpg") or filename.endswith(".jpeg"):
+                image_path = os.path.join(known_faces_dir, filename)
+                face_image = face_recognition.load_image_file(image_path)
+                face_encoding = face_recognition.face_encodings(face_image)[0]
+                self.known_face_encodings.append(face_encoding)
+                self.known_face_names.append(os.path.splitext(filename)[0])
 
     def recognize_face(self, image):
         face_locations = face_recognition.face_locations(image)
@@ -26,9 +28,10 @@ class FaceRecognizer:
             matches = face_recognition.compare_faces(self.known_face_encodings, face_encoding)
             name = "Unknown"
 
-            if True in matches:
-                first_match_index = matches.index(True)
-                name = self.known_face_names[first_match_index]
+            face_distances = face_recognition.face_distance(self.known_face_encodings, face_encoding)
+            best_match_index = np.argmin(face_distances)
+            if matches[best_match_index]:
+                name = self.known_face_names[best_match_index]
 
             face_names.append(name)
 
