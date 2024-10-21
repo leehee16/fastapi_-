@@ -4,8 +4,8 @@ from fastapi.templating import Jinja2Templates
 from fastapi.middleware.cors import CORSMiddleware
 
 from .routes import index, todo, face_reading
-from .db.database import DatabaseConnection, SQLAlchemyConnection, Base
-from .models import sales
+from .db.database import DatabaseConnection, SQLAlchemyConnection, Base, get_db
+from .models import sales, memo
 from .config import settings
 from datetime import date
 import random
@@ -28,6 +28,7 @@ app.include_router(face_reading.router)
 def get_db_connection():
     return SQLAlchemyConnection(settings.DATABASE_URL)
 
+db_connection = get_db_connection()
 app.dependency_overrides[DatabaseConnection] = get_db_connection
 
 app.add_middleware(
@@ -37,3 +38,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# 애플리케이션 시작 시 데이터베이스 테이블 생성
+Base.metadata.create_all(bind=db_connection.engine)

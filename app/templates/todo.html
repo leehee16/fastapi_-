@@ -1,24 +1,45 @@
 {% extends "base.html" %}
 
-{% block title %}Todo List{% endblock %}
+{% block title %}Todo & Memo{% endblock %}
 
 {% block content %}
-<h1 class="text-3xl font-bold mb-6">Todo List</h1>
-<div class="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
-    <h2 class="text-xl font-semibold mb-4">Tasks</h2>
-    <ul class="space-y-2">
-        <li class="flex items-center">
-            <input type="checkbox" class="mr-2">
-            <span>Task 1</span>
-        </li>
-        <li class="flex items-center">
-            <input type="checkbox" class="mr-2">
-            <span>Task 2</span>
-        </li>
-        <li class="flex items-center">
-            <input type="checkbox" class="mr-2">
-            <span>Task 3</span>
-        </li>
-    </ul>
+<div class="container mx-auto px-4 py-8">
+    <h1 class="text-2xl font-semibold mb-6">메모</h1>
+
+    <div class="mb-6">
+        <h2 class="text-xl font-semibold mb-4">새 메모 추가</h2>
+        <form action="/add-memo" method="post" class="flex">
+            <input type="text" name="content" placeholder="새 메모 입력" required
+                class="flex-grow mr-2 p-2 border rounded">
+            <button type="submit"
+                class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+                추가
+            </button>
+        </form>
+    </div>
+
+    <div class="space-y-4">
+        {% for memo in memos %}
+        <div class="bg-white shadow rounded-lg p-4">
+            <p>{{ memo.content }}</p>
+            <div class="mt-2 flex justify-end space-x-2">
+                <form action="/update-memo/{{ memo.id }}" method="post" class="flex">
+                    <input type="text" name="content" value="{{ memo.content }}" required
+                        class="flex-grow mr-2 p-2 border rounded">
+                    <button type="submit"
+                        class="bg-yellow-500 hover:bg-yellow-700 text-white font-bold py-1 px-2 rounded text-sm">
+                        수정
+                    </button>
+                </form>
+                <form action="/delete-memo/{{ memo.id }}" method="post">
+                    <button type="submit"
+                        class="bg-red-500 hover:bg-red-700 text-white font-bold py-1 px-2 rounded text-sm">
+                        삭제
+                    </button>
+                </form>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
 </div>
 {% endblock %}
